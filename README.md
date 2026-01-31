@@ -1,2 +1,2 @@
-# pipeline_new
-This project includes an automated CI/CD pipeline that manages the entire application delivery lifecycle.   The pipeline handles code integration, automated builds, testing, container image creation, and deployment, ensuring consistent and reliable releases across environments.
+This repository includes an automated CI/CD pipeline built and managed using DevOps best practices.  
+It handles building, testing, containerization, and deployment, ensuring consistent, reliable, and production-ready application delivery.
