@@ -4,7 +4,7 @@ node {
 
     // Stage 1: Git Build
     stage('1. Git Build') {
-        git branch: 'main', url: ''
+        git branch: 'main', url: 'https://github.com/osei681/pipeline_new.git'
     }
 
     // Stage 2: Maven Build
@@ -41,3 +41,4 @@ node {
         war: WAR_FILE
     }
 }
+
