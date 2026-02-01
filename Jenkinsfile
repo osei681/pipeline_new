@@ -16,7 +16,7 @@ pipeline {
         stage('1. Git Checkout') {
             steps {
                 git branch: 'main',
-                    url: ''
+                    url: 'https://github.com/osei681/pipeline_new.git'
             }
         }
 
