@@ -1,21 +1,43 @@
-node{
-def mavenHome = tool name: 'maven3.9.6'
- stage('1. cloneCode'){
-  //git "https://github.com/ayafor-code/maven-employee-web-application.git"
-   git branch: 'main', credentialsId: 'gitHubCred', url: 'https://github.com/ayafor-code/javaWebApp.git'
-}
- stage('2. mavenBuild'){
- //sh "mvn package"
- //sh "/var/lib/jenkins/tools/hudson.tasks.Maven_MavenInstallation/maven3.9.6/bin/mvn package"
- sh "${mavenHome}/bin/mvn package" 
-}
- stage('3. codeQualityAnalysis'){
-  sh "${mavenHome}/bin/mvn sonar:sonar"
-  //edit the pom.xml file with SonarQube server credentils(propertiesTAG)
-}
- stage('4. uploadArtifacts'){
-  sh "${mavenHome}/bin/mvn deploy"
-  //modify the distributionManagement tag in pom.xml
-}
+node {
 
+    def WAR_FILE = "target/*.war"
+
+    // Stage 1: Git Build
+    stage('1. Git Build') {
+        git branch: 'main', url: ''
+    }
+
+    // Stage 2: Maven Build
+    stage('2. Maven Build') {
+        withMaven(maven: 'maven3.9.12') {
+            sh 'mvn clean package -Dmaven.test.skip=true'
+        }
+    }
+
+    // Stage 3: SonarQube Analysis
+    stage('3. SonarQube Analysis') {
+        withCredentials([string(credentialsId: 'sonarPAT', variable: 'SONAR_TOKEN')]) {
+            withMaven(maven: 'maven3.9.12') {
+                sh """
+                mvn sonar:sonar \
+                -Dsonar.host.url=http://sonarqube:9000 \
+                -Dsonar.login=${SONAR_TOKEN}
+                """
+            }
+        }
+    }
+
+    // Stage 7: Deploy to Production Tomcat
+    stage('7. Deploy to Production Tomcat') {
+        echo "🚀 Deploying WAR to PRODUCTION Tomcat server..."
+
+        deploy adapters: [
+            tomcat9(
+                credentialsId: 'tomcat-cred',
+                url: 'http://tomcat-prod:8080'
+            )
+        ],
+        contextPath: 'linkpay',
+        war: WAR_FILE
+    }
 }
