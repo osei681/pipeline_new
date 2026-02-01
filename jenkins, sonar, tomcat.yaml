@@ -1,0 +1,43 @@
+node {
+
+    def WAR_FILE = "target/*.war"
+
+    // Stage 1: Git Build
+    stage('1. Git Build') {
+        git branch: 'main', url: ''
+    }
+
+    // Stage 2: Maven Build
+    stage('2. Maven Build') {
+        withMaven(maven: 'maven3.9.12') {
+            sh 'mvn clean package -Dmaven.test.skip=true'
+        }
+    }
+
+    // Stage 3: SonarQube Analysis
+    stage('3. SonarQube Analysis') {
+        withCredentials([string(credentialsId: 'sonarPAT', variable: 'SONAR_TOKEN')]) {
+            withMaven(maven: 'maven3.9.12') {
+                sh """
+                mvn sonar:sonar \
+                -Dsonar.host.url=http://sonarqube:9000 \
+                -Dsonar.login=${SONAR_TOKEN}
+                """
+            }
+        }
+    }
+
+    // Stage 7: Deploy to Production Tomcat
+    stage('7. Deploy to Production Tomcat') {
+        echo "🚀 Deploying WAR to PRODUCTION Tomcat server..."
+
+        deploy adapters: [
+            tomcat9(
+                credentialsId: 'tomcat-cred',
+                url: 'http://tomcat-prod:8080'
+            )
+        ],
+        contextPath: 'linkpay',
+        war: WAR_FILE
+    }
+}
